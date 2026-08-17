@@ -1,0 +1,1447 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esoteric Data Oracle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/renderers/CSS2DRenderer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;300;500&family=UnifrakturMaguntia&display=swap');
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff9d;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .glitch {
+            position: relative;
+            color: white;
+            font-size: 2rem;
+            animation: glitch 1s infinite alternate;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .scanlines {
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(0, 255, 157, 0.1),
+                rgba(0, 255, 157, 0.1) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .neon-border {
+            box-shadow: 0 0 10px #00ff9d, 0 0 20px #00ff9d, 0 0 30px #00ff9d;
+        }
+
+        .spectrogram {
+            background: linear-gradient(90deg, #000, #00ff9d, #ff00ff, #00ffff, #ff0000, #000);
+            opacity: 0.7;
+        }
+
+        .voronoi-cell {
+            stroke: #00ff9d;
+            stroke-width: 0.5;
+            fill-opacity: 0.3;
+        }
+
+        .sacred-geometry {
+            stroke: #ff00ff;
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.8;
+        }
+
+        .quantum-flux {
+            background: radial-gradient(circle, rgba(255,0,255,0.8) 0%, rgba(0,255,255,0.8) 50%, rgba(255,255,0,0.8) 100%);
+            border-radius: 50%;
+            animation: pulse 4s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.2); opacity: 0.3; }
+        }
+
+        .dimensional-portal {
+            background: conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .control-panel {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid #00ff9d;
+            border-radius: 8px;
+        }
+
+        .data-stream {
+            background: linear-gradient(90deg, transparent, #00ff9d, transparent);
+            height: 2px;
+            animation: stream 5s linear infinite;
+        }
+
+        @keyframes stream {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .esoteric-symbol {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 3rem;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .fractal-container {
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        .hidden-message {
+            font-size: 0.7rem;
+            color: rgba(0, 255, 157, 0.5);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .quantum-entanglement {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: entangle 3s infinite alternate;
+        }
+
+        @keyframes entangle {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            50% { transform: translate(50px, -30px) scale(0.5); opacity: 0.5; }
+            100% { transform: translate(-40px, 20px) scale(1.2); opacity: 0; }
+        }
+
+        .time-warper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,0,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="scanlines"></div>
+    <div class="time-warper" id="timeWarper"></div>
+
+    <!-- Main Container -->
+    <div class="relative min-h-screen p-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="glitch text-4xl md:text-6xl font-bold mb-4" data-text="ESOTERIC DATA ORACLE">ESOTERIC DATA ORACLE</h1>
+            <p class="text-sm md:text-base opacity-70">Decoding the hidden patterns of the universe through quantum entanglement</p>
+            <div class="data-stream mt-4"></div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel p-4 mb-8 max-w-4xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm mb-2">Dimensional Warp Factor</label>
+                    <input type="range" min="0" max="100" value="50" class="w-full" id="warpSlider">
+                    <div class="text-xs mt-1">Current: <span id="warpValue">50</span>%</div>
+                </div>
+                <div>
+                    <label class="block text-sm mb-2">Quantum Entanglement Level</label>
+                    <input type="range" min="0" max="100" value="30" class="w-full" id="entanglementSlider">
+                    <div class="text-xs mt-1">Current: <span id="entanglementValue">30</span>%</div>
+                </div>
+                <div>
+                    <label class="block text-sm mb-2">Temporal Distortion</label>
+                    <input type="range" min="0" max="100" value="20" class="w-full" id="timeSlider">
+                    <div class="text-xs mt-1">Current: <span id="timeValue">20</span>%</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors" id="activatePortal">ACTIVATE DIMENSIONAL PORTAL</button>
+                <button class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded transition-colors" id="quantumFlux">TRIGGER QUANTUM FLUX</button>
+                <button class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded transition-colors" id="sacredGeometry">GENERATE SACRED GEOMETRY</button>
+            </div>
+
+            <div class="mt-4 text-xs opacity-70">
+                <p>WARNING: High dimensional warp factors may cause temporal anomalies. Quantum entanglement levels above 80% may result in reality fragmentation. Temporal distortion beyond 60% could collapse the local spacetime continuum.</p>
+            </div>
+        </div>
+
+        <!-- Main Visualization Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- 3D Quantum Vortex -->
+            <div class="relative h-96 bg-black rounded-lg overflow-hidden">
+                <div class="absolute top-2 left-2 text-xs opacity-70">QUANTUM VORTEX SIMULATION</div>
+                <div class="absolute top-2 right-2 text-xs opacity-70">DIMENSIONS: 4D</div>
+                <div id="quantumVortex" class="w-full h-full"></div>
+                <div class="quantum-entanglement" style="top: 20%; left: 10%;"></div>
+                <div class="quantum-entanglement" style="top: 60%; left: 80%; animation-delay: 1s;"></div>
+                <div class="quantum-entanglement" style="top: 40%; left: 30%; animation-delay: 2s;"></div>
+            </div>
+
+            <!-- Esoteric Spectrogram -->
+            <div class="relative h-96 bg-black rounded-lg overflow-hidden">
+                <div class="absolute top-2 left-2 text-xs opacity-70">ESOTERIC SPECTROGRAM</div>
+                <div class="absolute top-2 right-2 text-xs opacity-70">FREQUENCY RANGE: 0-∞ Hz</div>
+                <canvas id="esotericSpectrogram" class="w-full h-full"></canvas>
+                <div class="absolute inset-0 pointer-events-none">
+                    <svg class="w-full h-full" id="spectrogramSymbols">
+                        <!-- Symbols will be added by JS -->
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sacred Geometry & Fractal Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="relative h-96 bg-black rounded-lg overflow-hidden">
+                <div class="absolute top-2 left-2 text-xs opacity-70">SACRED GEOMETRY GENERATOR</div>
+                <div class="absolute top-2 right-2 text-xs opacity-70">PATTERN COMPLEXITY: <span id="geometryComplexity">7</span>/10</div>
+                <svg id="sacredGeometry" class="w-full h-full"></svg>
+                <div class="absolute bottom-2 left-2 text-xs opacity-50">Current Pattern: <span id="currentPattern">Metatron's Cube</span></div>
+            </div>
+
+            <div class="relative h-96 bg-black rounded-lg overflow-hidden">
+                <div class="absolute top-2 left-2 text-xs opacity-70">FRACTAL DIMENSION EXPLORER</div>
+                <div class="absolute top-2 right-2 text-xs opacity-70">DEPTH: <span id="fractalDepth">5</span></div>
+                <div id="fractalContainer" class="w-full h-full"></div>
+                <div class="absolute bottom-2 left-2 text-xs opacity-50">Fractal Type: <span id="fractalType">Mandelbrot Set</span></div>
+            </div>
+        </div>
+
+        <!-- Dimensional Portal & Data Streams -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="relative h-96 bg-black rounded-lg overflow-hidden">
+                <div class="absolute top-2 left-2 text-xs opacity-70">DIMENSIONAL PORTAL</div>
+                <div class="absolute top-2 right-2 text-xs opacity-70">STABILITY: <span id="portalStability">87</span>%</div>
+                <div class="dimensional-portal w-64 h-64 mx-auto mt-8" id="dimensionalPortal"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="esoteric-symbol floating">𝕏</div>
+                </div>
+                <div class="absolute bottom-2 left-2 text-xs opacity-50">Connected Dimensions: 11</div>
+            </div>
+
+            <div class="relative h-96 bg-black rounded-lg overflow-hidden">
+                <div class="absolute top-2 left-2 text-xs opacity-70">QUANTUM DATA STREAMS</div>
+                <div class="absolute top-2 right-2 text-xs opacity-70">ENTROPY: <span id="dataEntropy">42.7</span></div>
+                <canvas id="quantumDataStreams" class="w-full h-full"></canvas>
+                <div class="absolute inset-0 pointer-events-none">
+                    <div class="hidden-message absolute top-4 left-4">THE ANSWER IS 42</div>
+                    <div class="hidden-message absolute top-8 right-4">TRUTH IS OUT THERE</div>
+                    <div class="hidden-message absolute bottom-8 left-8">11:11 SYNCHRONICITY</div>
+                    <div class="hidden-message absolute bottom-4 right-8">π = 3.1415926535...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Number Sequence Matrix -->
+        <div class="relative h-96 bg-black rounded-lg overflow-hidden mb-8">
+            <div class="absolute top-2 left-2 text-xs opacity-70">NUMBER SEQUENCE MATRIX</div>
+            <div class="absolute top-2 right-2 text-xs opacity-70">PATTERNS DETECTED: <span id="patternCount">137</span></div>
+            <div id="numberMatrix" class="w-full h-full p-4 overflow-auto"></div>
+            <div class="absolute bottom-2 left-2 text-xs opacity-50">Fibonacci: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34...</div>
+        </div>
+
+        <!-- Audio Visualization -->
+        <div class="relative h-64 bg-black rounded-lg overflow-hidden mb-8">
+            <div class="absolute top-2 left-2 text-xs opacity-70">AUDIO FREQUENCY ANALYZER</div>
+            <div class="absolute top-2 right-2 text-xs opacity-70">SAMPLE RATE: 44100 Hz</div>
+            <canvas id="audioVisualizer" class="w-full h-full"></canvas>
+            <div class="absolute bottom-2 left-2">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs" id="startAudio">START AUDIO ANALYSIS</button>
+                <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs ml-2" id="stopAudio">STOP</button>
+            </div>
+        </div>
+
+        <!-- Hidden Messages & Symbols -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-black rounded-lg p-4 text-center">
+                <div class="esoteric-symbol text-4xl mb-2">𝔸</div>
+                <div class="text-xs opacity-70">ALCHEMICAL SYMBOL</div>
+            </div>
+            <div class="bg-black rounded-lg p-4 text-center">
+                <div class="text-4xl mb-2" style="color: #ff00ff;">⚛</div>
+                <div class="text-xs opacity-70">QUANTUM SYMBOL</div>
+            </div>
+            <div class="bg-black rounded-lg p-4 text-center">
+                <div class="esoteric-symbol text-4xl mb-2">𝕎</div>
+                <div class="text-xs opacity-70">WORLD TREE</div>
+            </div>
+            <div class="bg-black rounded-lg p-4 text-center">
+                <div class="text-4xl mb-2" style="color: #00ffff;">∞</div>
+                <div class="text-xs opacity-70">INFINITY</div>
+            </div>
+        </div>
+
+        <!-- Footer with Strange Coordinates -->
+        <div class="text-center text-xs opacity-50 mb-8">
+            <p>CURRENT COORDINATES: 48°51'29.8"N 2°17'40.2"E | TIMESTAMP: <span id="currentTimestamp"></span></p>
+            <p>QUANTUM SIGNATURE: <span id="quantumSignature">a3f7b9c2d8e1f4g5h6i0j3k7l2m9n4o8p1q5r6s0t</span></p>
+            <p>DIMENSIONAL ANCHOR: STABLE | REALITY INDEX: 0.99999987</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize all visualizations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current timestamp
+            updateTimestamp();
+            setInterval(updateTimestamp, 1000);
+
+            // Initialize 3D Quantum Vortex
+            initQuantumVortex();
+
+            // Initialize Esoteric Spectrogram
+            initEsotericSpectrogram();
+
+            // Initialize Sacred Geometry
+            initSacredGeometry();
+
+            // Initialize Fractal Explorer
+            initFractalExplorer();
+
+            // Initialize Quantum Data Streams
+            initQuantumDataStreams();
+
+            // Initialize Number Sequence Matrix
+            initNumberMatrix();
+
+            // Initialize Audio Visualizer
+            initAudioVisualizer();
+
+            // Set up control panel interactions
+            setupControlPanel();
+
+            // Create floating quantum entanglement particles
+            createQuantumParticles();
+
+            // Start the time warper animation
+            animateTimeWarper();
+        });
+
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('currentTimestamp').textContent =
+                now.toISOString().replace('T', ' ').replace(/\..+/, '') + ' UTC';
+        }
+
+        function initQuantumVortex() {
+            const container = document.getElementById('quantumVortex');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera.position.z = 5;
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            // Add orbit controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Create quantum vortex
+            const vortexGroup = new THREE.Group();
+
+            // Create multiple layers of vortex
+            for (let i = 0; i < 5; i++) {
+                const radius = 2 + i * 0.5;
+                const height = 5 + i * 2;
+                const segments = 32 + i * 16;
+
+                const geometry = new THREE.ConeGeometry(radius, height, segments);
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(`hsl(${(i * 60) % 360}, 100%, 50%)`),
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.5 + (0.5 * (1 - i/5))
+                });
+
+                const cone = new THREE.Mesh(geometry, material);
+                cone.rotation.x = Math.PI;
+                cone.position.y = -height/2 + i * 0.5;
+                vortexGroup.add(cone);
+            }
+
+            scene.add(vortexGroup);
+
+            // Add quantum particles
+            const particleCount = 200;
+            const particles = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const sizes = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 10;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+
+                colors[i * 3] = Math.random();
+                colors[i * 3 + 1] = Math.random();
+                colors[i * 3 + 2] = Math.random();
+
+                sizes[i] = Math.random() * 0.5 + 0.1;
+            }
+
+            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particles.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const particleSystem = new THREE.Points(particles, particleMaterial);
+            vortexGroup.add(particleSystem);
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Rotate vortex
+                vortexGroup.rotation.y += 0.005;
+
+                // Animate particles
+                const positions = particleSystem.geometry.attributes.position.array;
+                for (let i = 0; i < particleCount; i++) {
+                    positions[i * 3 + 1] += 0.01 * (Math.random() - 0.5);
+                    if (positions[i * 3 + 1] > 5) positions[i * 3 + 1] = -5;
+                    if (positions[i * 3 + 1] < -5) positions[i * 3 + 1] = 5;
+                }
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
+        }
+
+        function initEsotericSpectrogram() {
+            const canvas = document.getElementById('esotericSpectrogram');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.clientWidth;
+            const height = canvas.height = canvas.clientHeight;
+
+            // Add symbols to SVG overlay
+            const svg = d3.select('#spectrogramSymbols');
+
+            // Create random symbols
+            const symbols = ['⚛', '∞', '♆', '⚡', '☯', '✧', '❂', '⚚', '⚛', '⚜', '⚝', '⚞', '⚟'];
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const size = 10 + Math.random() * 20;
+                const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+
+                svg.append('text')
+                    .attr('x', x)
+                    .attr('y', y)
+                    .attr('font-size', size)
+                    .attr('fill', `hsl(${Math.random() * 360}, 100%, 50%)`)
+                    .attr('opacity', 0.7)
+                    .text(symbol);
+            }
+
+            // Create spectrogram data
+            const data = [];
+            const rows = 200;
+            const cols = 100;
+
+            for (let y = 0; y < rows; y++) {
+                const row = [];
+                for (let x = 0; x < cols; x++) {
+                    // Create interesting patterns
+                    const value = Math.sin(x * 0.1 + y * 0.05) * 0.5 +
+                                 Math.cos(y * 0.1) * 0.3 +
+                                 Math.random() * 0.2;
+                    row.push(value);
+                }
+                data.push(row);
+            }
+
+            // Draw spectrogram
+            function drawSpectrogram() {
+                ctx.clearRect(0, 0, width, height);
+
+                const cellWidth = width / cols;
+                const cellHeight = height / rows;
+
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const value = data[y][x];
+                        const hue = 120 + value * 240;
+                        const saturation = 80 + value * 20;
+                        const lightness = 30 + value * 40;
+
+                        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                        ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                    }
+                }
+
+                // Add some random spikes
+                for (let i = 0; i < 10; i++) {
+                    const x = Math.floor(Math.random() * cols);
+                    const y = Math.floor(Math.random() * rows);
+                    const value = Math.random();
+
+                    ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    ctx.beginPath();
+                    ctx.arc(
+                        x * cellWidth + cellWidth/2,
+                        y * cellHeight + cellHeight/2,
+                        value * 20,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            }
+
+            drawSpectrogram();
+
+            // Animate spectrogram
+            setInterval(() => {
+                // Shift data
+                for (let y = 0; y < rows; y++) {
+                    data[y].shift();
+                    data[y].push(Math.sin(y * 0.1 + Date.now() * 0.001) * 0.5 + Math.random() * 0.2);
+                }
+
+                drawSpectrogram();
+            }, 100);
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = canvas.width = canvas.clientWidth;
+                const height = canvas.height = canvas.clientHeight;
+                drawSpectrogram();
+            });
+        }
+
+        function initSacredGeometry() {
+            const svg = d3.select('#sacredGeometry');
+            const width = svg.node().clientWidth;
+            const height = svg.node().clientHeight;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Clear previous content
+            svg.selectAll('*').remove();
+
+            // Create different sacred geometry patterns
+            const patterns = [
+                { name: "Flower of Life", draw: drawFlowerOfLife },
+                { name: "Metatron's Cube", draw: drawMetatronsCube },
+                { name: "Sri Yantra", draw: drawSriYantra },
+                { name: "Seed of Life", draw: drawSeedOfLife },
+                { name: "Tree of Life", draw: drawTreeOfLife }
+            ];
+
+            let currentPatternIndex = 0;
+            let complexity = 7;
+
+            function drawCurrentPattern() {
+                document.getElementById('currentPattern').textContent = patterns[currentPatternIndex].name;
+                document.getElementById('geometryComplexity').textContent = complexity;
+                patterns[currentPatternIndex].draw(svg, centerX, centerY, complexity);
+            }
+
+            drawCurrentPattern();
+
+            // Change pattern every 10 seconds
+            setInterval(() => {
+                currentPatternIndex = (currentPatternIndex + 1) % patterns.length;
+                drawCurrentPattern();
+            }, 10000);
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = svg.node().clientWidth;
+                const height = svg.node().clientHeight;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                drawCurrentPattern();
+            });
+
+            // Pattern drawing functions
+            function drawFlowerOfLife(svg, centerX, centerY, complexity) {
+                const radius = Math.min(width, height) * 0.4;
+                const circles = [];
+
+                // Create grid of circles
+                for (let row = -complexity; row <= complexity; row++) {
+                    for (let col = -complexity; col <= complexity; col++) {
+                        const x = centerX + col * radius * Math.sqrt(3) / 2;
+                        const y = centerY + row * radius * 1.5 + (col % 2) * radius * 0.75;
+
+                        if (Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)) < radius * 1.2) {
+                            circles.push({ x, y, radius: radius * 0.5 });
+                        }
+                    }
+                }
+
+                // Draw circles
+                svg.selectAll('circle')
+                    .data(circles)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y)
+                    .attr('r', d => d.radius)
+                    .attr('class', 'sacred-geometry')
+                    .attr('stroke', () => `hsl(${Math.random() * 60 + 300}, 100%, 50%)`);
+            }
+
+            function drawMetatronsCube(svg, centerX, centerY, complexity) {
+                const size = Math.min(width, height) * 0.4;
+                const points = [];
+
+                // Create 13 circles (Flower of Life)
+                for (let i = 0; i < 13; i++) {
+                    const angle = (i / 13) * Math.PI * 2;
+                    const radius = size * (i % 2 === 0 ? 0.5 : 0.25);
+                    points.push({
+                        x: centerX + Math.cos(angle) * radius,
+                        y: centerY + Math.sin(angle) * radius,
+                        radius: size * 0.25
+                    });
+                }
+
+                // Draw circles
+                svg.selectAll('circle')
+                    .data(points)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y)
+                    .attr('r', d => d.radius)
+                    .attr('class', 'sacred-geometry')
+                    .attr('stroke', () => `hsl(${Math.random() * 60 + 180}, 100%, 50%)`);
+
+                // Draw lines between specific points to form the cube
+                const connections = [
+                    [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6],
+                    [1, 7], [1, 8], [2, 9], [2, 10], [3, 11], [3, 12],
+                    [4, 7], [4, 9], [5, 8], [5, 11], [6, 10], [6, 12],
+                    [7, 9], [8, 11], [10, 12]
+                ];
+
+                connections.forEach(conn => {
+                    const p1 = points[conn[0]];
+                    const p2 = points[conn[1]];
+
+                    svg.append('line')
+                        .attr('x1', p1.x)
+                        .attr('y1', p1.y)
+                        .attr('x2', p2.x)
+                        .attr('y2', p2.y)
+                        .attr('class', 'sacred-geometry')
+                        .attr('stroke', `hsl(${Math.random() * 60 + 60}, 100%, 50%)`);
+                });
+            }
+
+            function drawSriYantra(svg, centerX, centerY, complexity) {
+                const size = Math.min(width, height) * 0.4;
+
+                // Draw 9 interlocking triangles
+                const triangles = [];
+
+                // 4 upward triangles
+                for (let i = 0; i < 4; i++) {
+                    const height = size * (0.8 - i * 0.15);
+                    const base = height * Math.sqrt(3);
+                    triangles.push({
+                        points: [
+                            { x: centerX, y: centerY - height/2 },
+                            { x: centerX - base/2, y: centerY + height/2 },
+                            { x: centerX + base/2, y: centerY + height/2 }
+                        ],
+                        color: `hsl(${i * 30}, 100%, 50%)`
+                    });
+                }
+
+                // 5 downward triangles
+                for (let i = 0; i < 5; i++) {
+                    const height = size * (0.6 - i * 0.1);
+                    const base = height * Math.sqrt(3);
+                    triangles.push({
+                        points: [
+                            { x: centerX, y: centerY + height/2 },
+                            { x: centerX - base/2, y: centerY - height/2 },
+                            { x: centerX + base/2, y: centerY - height/2 }
+                        ],
+                        color: `hsl(${120 + i * 30}, 100%, 50%)`
+                    });
+                }
+
+                // Draw triangles
+                triangles.forEach(triangle => {
+                    svg.append('polygon')
+                        .attr('points', triangle.points.map(p => `${p.x},${p.y}`).join(' '))
+                        .attr('class', 'sacred-geometry')
+                        .attr('stroke', triangle.color)
+                        .attr('fill', 'none');
+                });
+
+                // Draw central dot
+                svg.append('circle')
+                    .attr('cx', centerX)
+                    .attr('cy', centerY)
+                    .attr('r', size * 0.05)
+                    .attr('fill', '#ff00ff');
+            }
+
+            function drawSeedOfLife(svg, centerX, centerY, complexity) {
+                const radius = Math.min(width, height) * 0.3;
+                const circles = [];
+
+                // Create 7 circles
+                for (let i = 0; i < 7; i++) {
+                    const angle = (i / 7) * Math.PI * 2;
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    circles.push({ x, y, radius: radius });
+                }
+
+                // Draw circles
+                svg.selectAll('circle')
+                    .data(circles)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y)
+                    .attr('r', d => d.radius * 0.5)
+                    .attr('class', 'sacred-geometry')
+                    .attr('stroke', () => `hsl(${Math.random() * 60 + 30}, 100%, 50%)`);
+            }
+
+            function drawTreeOfLife(svg, centerX, centerY, complexity) {
+                const size = Math.min(width, height) * 0.4;
+                const sephiroth = [];
+
+                // Create 10 sephiroth (spheres)
+                for (let i = 0; i < 10; i++) {
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    const x = centerX + (col - 1) * size * 0.4;
+                    const y = centerY - size * 0.3 + row * size * 0.3;
+                    sephiroth.push({ x, y, radius: size * 0.08 });
+                }
+
+                // Special positions for the top and bottom sephiroth
+                sephiroth[0].x = centerX; // Kether
+                sephiroth[0].y = centerY - size * 0.4;
+
+                sephiroth[9].x = centerX; // Malkuth
+                sephiroth[9].y = centerY + size * 0.4;
+
+                // Draw sephiroth
+                svg.selectAll('circle')
+                    .data(sephiroth)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y)
+                    .attr('r', d => d.radius)
+                    .attr('fill', (d, i) => `hsl(${i * 36}, 100%, 50%)`);
+
+                // Draw paths between sephiroth
+                const connections = [
+                    [0, 1], [0, 2], [0, 3], // Kether to Chokmah, Binah, Da'at
+                    [1, 4], [1, 6],         // Chokmah to Chesed, Tiphareth
+                    [2, 5], [2, 6],         // Binah to Geburah, Tiphareth
+                    [3, 6],                 // Da'at to Tiphareth
+                    [4, 6], [4, 7],         // Chesed to Tiphareth, Netzach
+                    [5, 6], [5, 8],         // Geburah to Tiphareth, Hod
+                    [6, 7], [6, 8], [6, 9], // Tiphareth to Netzach, Hod, Yesod
+                    [7, 9],                 // Netzach to Yesod
+                    [8, 9]                  // Hod to Yesod
+                ];
+
+                connections.forEach(conn => {
+                    const p1 = sephiroth[conn[0]];
+                    const p2 = sephiroth[conn[1]];
+
+                    svg.append('line')
+                        .attr('x1', p1.x)
+                        .attr('y1', p1.y)
+                        .attr('x2', p2.x)
+                        .attr('y2', p2.y)
+                        .attr('class', 'sacred-geometry')
+                        .attr('stroke', `hsl(${Math.random() * 60 + 120}, 100%, 50%)`);
+                });
+            }
+        }
+
+        function initFractalExplorer() {
+            const container = document.getElementById('fractalContainer');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            let fractalType = 'mandelbrot';
+            let depth = 5;
+            let zoom = 1;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            function drawFractal() {
+                document.getElementById('fractalDepth').textContent = depth;
+                document.getElementById('fractalType').textContent = fractalType.charAt(0).toUpperCase() + fractalType.slice(1);
+
+                ctx.clearRect(0, 0, width, height);
+
+                const maxIterations = 50 + depth * 20;
+                const escapeRadius = 2;
+
+                for (let px = 0; px < width; px++) {
+                    for (let py = 0; py < height; py++) {
+                        // Convert pixel coordinates to complex plane coordinates
+                        let x0, y0;
+
+                        if (fractalType === 'mandelbrot') {
+                            x0 = (px - width/2) * 3/width * zoom + offsetX;
+                            y0 = (py - height/2) * 3/height * zoom + offsetY;
+                        } else { // julia
+                            x0 = (px - width/2) * 3/width * zoom + offsetX;
+                            y0 = (py - height/2) * 3/height * zoom + offsetY;
+                        }
+
+                        let x = 0;
+                        let y = 0;
+                        let iteration = 0;
+
+                        while (x*x + y*y < escapeRadius*escapeRadius && iteration < maxIterations) {
+                            const xtemp = x*x - y*y;
+                            y = 2*x*y;
+
+                            if (fractalType === 'mandelbrot') {
+                                x = xtemp + x0;
+                                y = y + y0;
+                            } else { // julia
+                                x = xtemp + (-0.7);
+                                y = y + (0.27015);
+                            }
+
+                            iteration++;
+                        }
+
+                        if (iteration < maxIterations) {
+                            const colorValue = iteration / maxIterations;
+                            const hue = colorValue * 360;
+                            const saturation = 80 + colorValue * 20;
+                            const lightness = 30 + colorValue * 40;
+
+                            ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                            ctx.fillRect(px, py, 1, 1);
+                        }
+                    }
+                }
+
+                // Add some random points of interest
+                for (let i = 0; i < 10; i++) {
+                    const px = Math.floor(Math.random() * width);
+                    const py = Math.floor(Math.random() * height);
+
+                    ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            drawFractal();
+
+            // Change fractal type periodically
+            setInterval(() => {
+                fractalType = fractalType === 'mandelbrot' ? 'julia' : 'mandelbrot';
+                depth = Math.floor(Math.random() * 6) + 3;
+                zoom = 1 + Math.random() * 2;
+                offsetX = (Math.random() - 0.5) * 2;
+                offsetY = (Math.random() - 0.5) * 2;
+                drawFractal();
+            }, 8000);
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                canvas.width = width;
+                canvas.height = height;
+                drawFractal();
+            });
+        }
+
+        function initQuantumDataStreams() {
+            const canvas = document.getElementById('quantumDataStreams');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.clientWidth;
+            const height = canvas.height = canvas.clientHeight;
+
+            // Create multiple data streams
+            const streams = [];
+            const streamCount = 10;
+
+            for (let i = 0; i < streamCount; i++) {
+                streams.push({
+                    points: generateRandomPoints(50),
+                    color: `hsl(${i * (360/streamCount)}, 100%, 50%)`,
+                    speed: 0.5 + Math.random() * 2,
+                    width: 1 + Math.random() * 3
+                });
+            }
+
+            function generateRandomPoints(count) {
+                const points = [];
+                for (let i = 0; i < count; i++) {
+                    points.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2
+                    });
+                }
+                return points;
+            }
+
+            function drawStreams() {
+                ctx.clearRect(0, 0, width, height);
+
+                streams.forEach(stream => {
+                    ctx.beginPath();
+                    ctx.moveTo(stream.points[0].x, stream.points[0].y);
+
+                    for (let i = 1; i < stream.points.length; i++) {
+                        const p = stream.points[i];
+                        ctx.lineTo(p.x, p.y);
+                    }
+
+                    ctx.strokeStyle = stream.color;
+                    ctx.lineWidth = stream.width;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+
+                    // Draw points
+                    stream.points.forEach(p => {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, stream.width * 1.5, 0, Math.PI * 2);
+                        ctx.fillStyle = stream.color;
+                        ctx.fill();
+                    });
+                });
+            }
+
+            function updateStreams() {
+                streams.forEach(stream => {
+                    stream.points.forEach(p => {
+                        p.x += p.vx * stream.speed;
+                        p.y += p.vy * stream.speed;
+
+                        // Bounce off edges
+                        if (p.x < 0 || p.x > width) p.vx *= -1;
+                        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                        // Random direction changes
+                        if (Math.random() < 0.02) {
+                            p.vx = (Math.random() - 0.5) * 2;
+                            p.vy = (Math.random() - 0.5) * 2;
+                        }
+                    });
+                });
+            }
+
+            function animate() {
+                updateStreams();
+                drawStreams();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            // Add new random streams periodically
+            setInterval(() => {
+                streams.push({
+                    points: generateRandomPoints(30 + Math.floor(Math.random() * 40)),
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    speed: 0.5 + Math.random() * 2,
+                    width: 1 + Math.random() * 3
+                });
+
+                if (streams.length > 15) {
+                    streams.shift();
+                }
+            }, 5000);
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = canvas.width = canvas.clientWidth;
+                const height = canvas.height = canvas.clientHeight;
+
+                streams.forEach(stream => {
+                    stream.points.forEach(p => {
+                        p.x = p.x / canvas.width * width;
+                        p.y = p.y / canvas.height * height;
+                    });
+                });
+            });
+        }
+
+        function initNumberMatrix() {
+            const container = document.getElementById('numberMatrix');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Create a grid of numbers
+            const rows = 50;
+            const cols = 30;
+            const cellWidth = width / cols;
+            const cellHeight = 20;
+
+            // Generate interesting number sequences
+            const sequences = [
+                generateFibonacci(100),
+                generatePrimes(100),
+                generatePiDigits(100),
+                generateRandomWalk(100),
+                generateBinary(100),
+                generateTriangular(100),
+                generateSquare(100),
+                generateCube(100)
+            ];
+
+            // Create matrix
+            let matrix = [];
+            for (let y = 0; y < rows; y++) {
+                const row = [];
+                for (let x = 0; x < cols; x++) {
+                    const seqIndex = Math.floor(Math.random() * sequences.length);
+                    const seqPos = Math.floor(Math.random() * sequences[seqIndex].length);
+                    row.push(sequences[seqIndex][seqPos]);
+                }
+                matrix.push(row);
+            }
+
+            function renderMatrix() {
+                container.innerHTML = '';
+
+                for (let y = 0; y < rows; y++) {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.style.display = 'flex';
+                    rowDiv.style.height = `${cellHeight}px`;
+
+                    for (let x = 0; x < cols; x++) {
+                        const cell = document.createElement('div');
+                        cell.style.width = `${cellWidth}px`;
+                        cell.style.height = `${cellHeight}px`;
+                        cell.style.fontSize = '0.7rem';
+                        cell.style.textAlign = 'center';
+                        cell.style.lineHeight = `${cellHeight}px`;
+                        cell.style.color = `hsl(${Math.random() * 60 + 180}, 100%, 50%)`;
+                        cell.style.opacity = 0.7 + Math.random() * 0.3;
+                        cell.textContent = matrix[y][x];
+
+                        // Highlight interesting numbers
+                        if (matrix[y][x] === 42 || matrix[y][x] === 137 || matrix[y][x] === 666 ||
+                            matrix[y][x] === 7 || matrix[y][x] === 11 || matrix[y][x] === 23) {
+                            cell.style.color = '#ff00ff';
+                            cell.style.fontWeight = 'bold';
+                            cell.style.textShadow = '0 0 5px #ff00ff';
+                        }
+
+                        rowDiv.appendChild(cell);
+                    }
+
+                    container.appendChild(rowDiv);
+                }
+            }
+
+            renderMatrix();
+
+            // Update matrix periodically
+            setInterval(() => {
+                // Shift columns
+                for (let x = 0; x < cols; x++) {
+                    const seqIndex = Math.floor(Math.random() * sequences.length);
+                    const seqPos = Math.floor(Math.random() * sequences[seqIndex].length);
+
+                    for (let y = 0; y < rows; y++) {
+                        matrix[y][x] = sequences[seqIndex][(seqPos + y) % sequences[seqIndex].length];
+                    }
+                }
+
+                renderMatrix();
+                document.getElementById('patternCount').textContent = Math.floor(Math.random() * 200) + 50;
+            }, 2000);
+
+            // Number sequence generators
+            function generateFibonacci(count) {
+                const seq = [0, 1];
+                for (let i = 2; i < count; i++) {
+                    seq.push(seq[i-1] + seq[i-2]);
+                }
+                return seq;
+            }
+
+            function generatePrimes(count) {
+                const primes = [];
+                let num = 2;
+
+                while (primes.length < count) {
+                    let isPrime = true;
+                    for (let i = 0; i < primes.length; i++) {
+                        if (num % primes[i] === 0) {
+                            isPrime = false;
+                            break;
+                        }
+                    }
+                    if (isPrime) primes.push(num);
+                    num++;
+                }
+
+                return primes;
+            }
+
+            function generatePiDigits(count) {
+                // Approximation of pi digits
+                const pi = Math.PI.toString().replace('.', '').split('');
+                const digits = [];
+
+                for (let i = 0; i < count; i++) {
+                    digits.push(parseInt(pi[i % pi.length]));
+                }
+
+                return digits;
+            }
+
+            function generateRandomWalk(count) {
+                const walk = [0];
+                for (let i = 1; i < count; i++) {
+                    walk.push(walk[i-1] + (Math.random() > 0.5 ? 1 : -1));
+                }
+                return walk;
+            }
+
+            function generateBinary(count) {
+                const binary = [];
+                for (let i = 0; i < count; i++) {
+                    binary.push(Math.floor(Math.random() * 2));
+                }
+                return binary;
+            }
+
+            function generateTriangular(count) {
+                const triangular = [];
+                for (let i = 1; i <= count; i++) {
+                    triangular.push(i * (i + 1) / 2);
+                }
+                return triangular;
+            }
+
+            function generateSquare(count) {
+                const squares = [];
+                for (let i = 1; i <= count; i++) {
+                    squares.push(i * i);
+                }
+                return squares;
+            }
+
+            function generateCube(count) {
+                const cubes = [];
+                for (let i = 1; i <= count; i++) {
+                    cubes.push(i * i * i);
+                }
+                return cubes;
+            }
+        }
+
+        function initAudioVisualizer() {
+            const canvas = document.getElementById('audioVisualizer');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.clientWidth;
+            const height = canvas.height = canvas.clientHeight;
+
+            let audioContext;
+            let analyser;
+            let dataArray;
+            let source;
+            let isPlaying = false;
+
+            // Create a simple oscillator for demo purposes
+            function createOscillator() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                }
+
+                if (source) {
+                    source.disconnect();
+                }
+
+                source = audioContext.createOscillator();
+                source.type = 'sine';
+                source.frequency.value = 440;
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                source.start();
+            }
+
+            function drawVisualizer() {
+                if (!isPlaying) return;
+
+                requestAnimationFrame(drawVisualizer);
+
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.clearRect(0, 0, width, height);
+
+                const barWidth = (width / analyser.frequencyBinCount) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < analyser.frequencyBinCount; i++) {
+                    const barHeight = dataArray[i] / 255 * height;
+
+                    const hue = i / analyser.frequencyBinCount * 360;
+                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+
+                    x += barWidth + 1;
+                }
+
+                // Add some circular patterns
+                for (let i = 0; i < 5; i++) {
+                    const radius = dataArray[i * 10] / 255 * Math.min(width, height) * 0.4;
+                    const centerX = width * 0.2 + i * width * 0.15;
+                    const centerY = height * 0.5;
+
+                    ctx.strokeStyle = `hsl(${i * 60}, 100%, 50%)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            document.getElementById('startAudio').addEventListener('click', function() {
+                if (!isPlaying) {
+                    createOscillator();
+                    isPlaying = true;
+                    drawVisualizer();
+                }
+            });
+
+            document.getElementById('stopAudio').addEventListener('click', function() {
+                if (isPlaying && source) {
+                    source.stop();
+                    isPlaying = false;
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const width = canvas.width = canvas.clientWidth;
+                const height = canvas.height = canvas.clientHeight;
+            });
+        }
+
+        function setupControlPanel() {
+            // Warp slider
+            const warpSlider = document.getElementById('warpSlider');
+            const warpValue = document.getElementById('warpValue');
+
+            warpSlider.addEventListener('input', function() {
+                warpValue.textContent = this.value;
+
+                // Apply warp effect to time warper
+                const timeWarper = document.getElementById('timeWarper');
+                timeWarper.style.opacity = this.value / 100;
+                timeWarper.style.backgroundSize = `${100 - this.value}px ${100 - this.value}px`;
+            });
+
+            // Entanglement slider
+            const entanglementSlider = document.getElementById('entanglementSlider');
+            const entanglementValue = document.getElementById('entanglementValue');
+
+            entanglementSlider.addEventListener('input', function() {
+                entanglementValue.textContent = this.value;
+
+                // Create more quantum particles
+                const particleCount = Math.floor(this.value / 5);
+                createQuantumParticles(particleCount);
+            });
+
+            // Time slider
+            const timeSlider = document.getElementById('timeSlider');
+            const timeValue = document.getElementById('timeValue');
+
+            timeSlider.addEventListener('input', function() {
+                timeValue.textContent = this.value;
+
+                // Adjust time warper animation speed
+                const timeWarper = document.getElementById('timeWarper');
+                timeWarper.style.animationDuration = `${10 - this.value/10}s`;
+            });
+
+            // Activate portal button
+            document.getElementById('activatePortal').addEventListener('click', function() {
+                const portal = document.getElementById('dimensionalPortal');
+                portal.style.animation = 'none';
+                void portal.offsetWidth; // Trigger reflow
+                portal.style.animation = 'rotate 5s linear infinite';
+
+                // Update portal stability
+                const stability = Math.floor(Math.random() * 30) + 70;
+                document.getElementById('portalStability').textContent = stability;
+
+                // Change quantum signature
+                document.getElementById('quantumSignature').textContent =
+                    generateRandomHex(32);
+            });
+
+            // Quantum flux button
+            document.getElementById('quantumFlux').addEventListener('click', function() {
+                // Create a quantum flux effect
+                const flux = document.createElement('div');
+                flux.className = 'quantum-flux fixed w-32 h-32 rounded-full pointer-events-none z-50';
+                flux.style.left = `${Math.random() * 80 + 10}%`;
+                flux.style.top = `${Math.random() * 80 + 10}%`;
+                document.body.appendChild(flux);
+
+                setTimeout(() => {
+                    flux.remove();
+                }, 4000);
+
+                // Update data entropy
+                document.getElementById('dataEntropy').textContent =
+                    (Math.random() * 50 + 30).toFixed(1);
+            });
+
+            // Sacred geometry button
+            document.getElementById('sacredGeometry').addEventListener('click', function() {
+                // Trigger a sacred geometry generation
+                initSacredGeometry();
+            });
+
+            function generateRandomHex(length) {
+                let result = '';
+                const characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * characters.length));
+                }
+                return result;
+            }
+        }
+
+        function createQuantumParticles(count = 20) {
+            // Remove existing particles
+            document.querySelectorAll('.quantum-entanglement').forEach(el => el.remove());
+
+            // Create new particles
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'quantum-entanglement';
+                particle.style.left = `${Math.random() * 80 + 10}%`;
+                particle.style.top = `${Math.random() * 80 + 10}%`;
+                particle.style.animationDelay = `${Math.random() * 3}s`;
+                particle.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+
+                document.body.appendChild(particle);
+            }
+        }
+
+        function animateTimeWarper() {
+            const timeWarper = document.getElementById('timeWarper');
+            let scale = 1;
+            let growing = true;
+
+            function animate() {
+                if (growing) {
+                    scale += 0.01;
+                    if (scale >= 1.5) growing = false;
+                } else {
+                    scale -= 0.01;
+                    if (scale <= 1) growing = true;
+                }
+
+                timeWarper.style.transform = `scale(${scale})`;
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+    </script>
+</body>
+</html>
